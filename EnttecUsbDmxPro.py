@@ -35,9 +35,9 @@ class EnttecUsbDmxPro:
         self.serial.baudrate = baud
     def getPort(self):
         return self.serial.port
-    def setDebug(mode,value):
+    def setDebug(self, mode,value):
         self.debug[mode] = value
-    def getDebug(mode="all"):
+    def getDebug(self, mode="all"):
         if mode == "all":
             return self.debug
         else:
@@ -48,7 +48,7 @@ class EnttecUsbDmxPro:
         # Open and connect to the serial port
         if self.serial.isOpen():
             print(serial)
-            disconnect()
+            self.disconnect()
         print("Opening Enttec USB DMX Pro on",self.serial.port,"at",self.serial.baudrate,"baud")
         self.serial.open()
         self.widget_event['ThreadExit'].clear()
