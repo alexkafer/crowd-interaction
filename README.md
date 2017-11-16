@@ -4,11 +4,11 @@ Communications and emulation modules for the Enttec Usb Dmx Pro
 # Overview
 The purpose of this software is the allow the crowd to interact with the light show using their mobile devices
 
-The main file is `crowd_integration.py`. Be nice to that file, it was born with a coding defect called Python. It has learned to live with itself, so we mustn't be disrespectful.
+The main file is `crowd_interaction.py`. Be nice to that file, it was born with a coding defect called Python. It has learned to live with itself, so we mustn't be disrespectful.
 
 
 # Getting Started
-`python crowd_integration.py`
+`python crowd_interaction.py`
 
 Yeah thats about it. The software should be smart enough to debug itself upon any errors. 
 
