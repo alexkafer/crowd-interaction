@@ -3,6 +3,7 @@ from enum import Enum
 from websocket_server import WebsocketServer
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import json
+import unicodedata
 
 import threading
 
@@ -31,23 +32,17 @@ def new_client(client, server):
 def client_left(client, server):
     """ Called for every client disconnecting """
     print("Client(%d) disconnected" % client['id'])
-
-def receive_socket_update(client, server, message):
-    """ Receives web socket update and updates the pixel manager """
-    if len(message) > 200:
-            message = message[:200]+'..'
-    print("Client(%d) said: %s" % (client['id'], message))
-
+    
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
     def __init__(self, websocket_port = 8080, webserver_port = 8000):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)] 
         self.dmx = None
-        self.server = WebsocketServer(websocket_port)
-        self.server.set_fn_new_client(new_client)
-        self.server.set_fn_client_left(client_left)
-        self.server.set_fn_message_received(receive_socket_update)
+        self.ws = WebsocketServer(websocket_port, "0.0.0.0")
+        self.ws.set_fn_new_client(new_client)
+        self.ws.set_fn_client_left(client_left)
+        self.ws.set_fn_message_received(self.receive_update)
 
         server_address = ('', webserver_port)
         HTTPServer.__init__(self, server_address, PixelServer)
@@ -55,10 +50,18 @@ class PixelManager(HTTPServer):
     def start_websocket(self):
         """ Starts the web socket """
         print 'Starting web socket...'
-        self.websocket_thread = threading.Thread(target=self.server.run_forever)
+        self.websocket_thread = threading.Thread(target=self.ws.run_forever)
         self.websocket_thread.daemon = True
         self.websocket_thread.start()
 
+    def receive_update(self, client, server, message):
+        """ Receives web socket update and updates the pixel manager """
+        print("Client(%d) said: %s" % (client['id'], message))
+        update = json.loads(message)
+        row = int(update['row'])
+        col = int(update['col'])
+        color = Color(int(update['color']))
+        self.set_color(row, col, color)
 
     def set_color(self, row, column, color):
         """ Sets an individual pixel to a given color """
@@ -66,6 +69,15 @@ class PixelManager(HTTPServer):
         print("Setting color to " + str(color))
         if self.dmx is not None:
             self.dmx.sendDMX(self.convert_to_dmx_array())
+
+        if self.ws:
+            payload = {
+                'row': row,
+                'col': column,
+                'color': color.value
+            }
+
+            self.ws.send_message_to_all(json.dumps(payload))
 
     def get_pixels(self):
         """ Sets an individual pixel to a given color """
