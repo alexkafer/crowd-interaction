@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
 
 # C extensions
 *.so
@@ -41,16 +42,13 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-<<<<<<< HEAD
-=======
 *,cover
->>>>>>> refs/remotes/origin/master
 
 # Translations
 *.mo
 *.pot
 
-# Django stuff:
+
 *.log
 
 # Sphinx documentation
@@ -58,9 +56,9 @@ docs/_build/
 
 # PyBuilder
 target/
-<<<<<<< HEAD
 
 # OSX ignored files
 .DS_Store
-=======
->>>>>>> refs/remotes/origin/master
+
+# VSCode stuff
+.vscode
