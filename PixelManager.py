@@ -4,6 +4,7 @@ from websocket_server import WebsocketServer
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import json
 import unicodedata
+import ConfigParser
 
 import threading
 
@@ -39,6 +40,17 @@ class PixelManager(HTTPServer):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)] 
         self.dmx = None
+
+        config = ConfigParser.RawConfigParser() 
+        config.read('DMX.cfg')
+
+        self.dmxmap = []
+
+        for row in range(5):
+            for col in range(12):
+                 self.dmxmap.append([config.getint('RED', str(col) + ',' + str(row)), config.getint('GREEN', str(col) + ',' + str(row))])
+                
+        print "Config: ", self.dmxmap
         self.ws = WebsocketServer(websocket_port, "0.0.0.0")
         self.ws.set_fn_new_client(new_client)
         self.ws.set_fn_client_left(client_left)
@@ -85,7 +97,22 @@ class PixelManager(HTTPServer):
 
     def convert_to_dmx_array(self):
         """ Converts the matrix to a single 1D array. """
-        return sum(self.pixels, [])
+        output = [0] * 512
+        flattened = (self.pixels[4] + self.pixels[3] + self.pixels[2] + self.pixels[1] + self.pixels[0])
+        index = 0
+        for pixel in flattened:
+            print index, pixel, self.dmxmap[index]
+            if pixel == Color.RED:
+                output[self.dmxmap[index][0]-1] = 255
+            elif pixel == Color.GREEN:
+                output[self.dmxmap[index][1]-1] = 255
+            else:
+                output[self.dmxmap[index][0]-1] = 0
+                output[self.dmxmap[index][1]-1] = 0
+
+            index += 1
+            
+        return output
 
     def link_dmx(self, dmx):
         """ Links the DMX instance to the Pixel Manager  """

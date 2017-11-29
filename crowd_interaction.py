@@ -23,7 +23,9 @@ if len(sys.argv) < 2:
     if platform.system() == 'Linux':
         DPORT = '/dev/ttyUSB0'
     elif platform.system() == 'Darwin':
-        DPORT = '/dev/tty.usbserial-EN17533'
+        DPORT = '/dev/tty.usbserial-EN215593' 
+        # Erwin: tty.usbserial-EN215593
+        # Timmy: tty.usbserial-EN17533
 else:
     DPORT = sys.argv[1]
 
@@ -34,39 +36,39 @@ if DPORT is None:
 
 print " - dport selected as " + DPORT
 
-# DMX.setPort(DPORT)
-# DMX.connect()
+DMX.setPort(DPORT)
+DMX.connect()
 
-# PIXELS.link_dmx(DMX)
+PIXELS.link_dmx(DMX)
 
 PIXELS.start_websocket()
 PIXELS.start_webserver()
 
 PIXELS.set_color(0, 0, Color.RED)
 
-def infinit_test():
-    while True:
-        color = Color.RED
-        for x in range(5):
-            for y in range(12):
-                PIXELS.set_color(x, y, color)
-                time.sleep(1)
+# def infinit_test():
+#     while True:
+#         color = Color.RED
+#         for x in range(5):
+#             for y in range(12):
+#                 PIXELS.set_color(x, y, color)
+#                 time.sleep(1)
 
-        color = Color.OFF
-        for x in range(5):
-            for y in range(12):
-                PIXELS.set_color(x, y, color)
-                time.sleep(1)
+#         color = Color.OFF
+#         for x in range(5):
+#             for y in range(12):
+#                 PIXELS.set_color(x, y, color)
+#                 time.sleep(1)
 
-        color = Color.GREEN
-        for x in range(5):
-            for y in range(12):
-                PIXELS.set_color(x, y, color)
-                time.sleep(1)
+#         color = Color.GREEN
+#         for x in range(5):
+#             for y in range(12):
+#                 PIXELS.set_color(x, y, color)
+#                 time.sleep(1)
 
-test_thread = threading.Thread(target=infinit_test)
-test_thread.daemon = True
-test_thread.start()
+# test_thread = threading.Thread(target=infinit_test)
+# test_thread.daemon = True
+# test_thread.start()
 
 command = None
 while command != "stop":
