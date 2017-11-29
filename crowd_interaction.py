@@ -6,10 +6,11 @@ import sys
 import time
 import threading
 
-from CrowdInteraction.Libraries.PixelManager import PixelManager, Color
-from serial.serialutil import SerialException
-from CrowdInteraction.Libraries.EnttecUsbDmxPro import EnttecUsbDmxPro
+import libraries
 
+from libraries.PixelManager import PixelManager, Color
+from serial.serialutil import SerialException
+from libraries.EnttecUsbDmxPro import EnttecUsbDmxPro
 
 print "Welcome to the Crowd Interaction software. We put the cool in cool beans."
 
@@ -24,7 +25,7 @@ if len(sys.argv) < 2:
     if platform.system() == 'Linux':
         DPORT = '/dev/ttyUSB0'
     elif platform.system() == 'Darwin':
-        DPORT = '/dev/tty.usbserial-EN215593' 
+        DPORT = '/dev/tty.usbserial-EN215593'
         # Erwin: tty.usbserial-EN215593
         # Timmy: tty.usbserial-EN17533
 else:
