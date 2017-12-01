@@ -12,12 +12,10 @@ from libraries.PixelManager import PixelManager, Color
 from serial.serialutil import SerialException
 from libraries.EnttecUsbDmxPro import EnttecUsbDmxPro
 
+from games.pong import PongGame
+
 print "Welcome to the Crowd Interaction software. We put the cool in cool beans."
-
-print " - Initializing PixelManager"
 PIXELS = PixelManager()
-
-print " - Initializing EnttecUsbDmxPro"
 DMX = EnttecUsbDmxPro()
 
 DPORT = None
@@ -36,59 +34,95 @@ if DPORT is None:
     sys.stderr.write("ERROR: No serial port for DMX detected!\n")
     sys.exit()
 
-print " - dport selected as " + DPORT
-
 DMX.setPort(DPORT)
 
 try:
     DMX.connect()
+    PIXELS.link_dmx(DMX)
 except SerialException:
-    print "Unable to connect to USB to DMX converter. Is Timmy (Erwin) alive?"
+    print "Unable to connect to USB to DMX converter. Is Timmy (Erwin) alive? Proceeding without DMX"
 
-PIXELS.link_dmx(DMX)
 PIXELS.start_websocket()
 PIXELS.start_webserver()
 
-PIXELS.set_color(0, 0, Color.RED)
-
-def dmx_list_command():
-    DMX.list()
-
 def test_command():
-    def infinit_test():
+    PIXELS.set_current_mode("testing")
+    try: 
         while True:
             color = Color.RED
             for x in range(5):
                 for y in range(12):
                     PIXELS.set_color(x, y, color)
                     time.sleep(1)
+                    PIXELS.render_update()
 
             color = Color.OFF
             for x in range(5):
                 for y in range(12):
                     PIXELS.set_color(x, y, color)
                     time.sleep(1)
+                    PIXELS.render_update()
 
             color = Color.GREEN
             for x in range(5):
                 for y in range(12):
                     PIXELS.set_color(x, y, color)
                     time.sleep(1)
-            
-    test_thread = threading.Thread(target=infinit_test)
-    test_thread.daemon = True
-    test_thread.start()
+                    PIXELS.render_update()
+
+    except KeyboardInterrupt:
+        print('interrupted!')
+
+def green():
+    pixels = [[Color.GREEN for x in range(12)] for y in range(5)]
+    PIXELS.set_frame(pixels)
+
+def red():
+    pixels = [[Color.RED for x in range(12)] for y in range(5)]
+    PIXELS.set_frame(pixels)
+
+def clear():
+    pixels = [[Color.OFF for x in range(12)] for y in range(5)]
+    PIXELS.set_frame(pixels)
+
+def clients():
+    print PIXELS.ws.clients
 
 def stop_command():
-    print "Stopping"
+    if DMX is not None:
+        DMX.disconnect
+
+def pong_command():
+    game = PongGame(PIXELS)
+    
+
+    game.show_score()
+
+    try:
+        while not game.finished:
+            time.sleep(0.5)
+            game.update()
+            PIXELS.render_update()
+    except KeyboardInterrupt:
+        print('interrupted!')
+
+    
 
 COMMANDS = {
     "stop" : stop_command,
     "test" : test_command,
-    "list" : dmx_list_command
+    "pong" : pong_command,
+    "green" : green,
+    "red" : red,
+    "clear" : clear,
+    "clients": clients
 }
+
 
 command = None
 while command != "stop":
+    PIXELS.set_current_mode("places")
     command = raw_input("Enter a command: ")
-    COMMANDS.get(command, None)()
+    to_run = COMMANDS.get(command, None)
+    if to_run is not None:
+        to_run()

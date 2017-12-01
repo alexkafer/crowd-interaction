@@ -24,16 +24,6 @@ class ColorEncoder(json.JSONEncoder):
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, o)
 
-def new_client(client, server):
-    """ Called for every client connecting (after handshake) """
-    print "New client connected and was given id %d" % client['id']
-    server.send_message_to_all("Hey all, a new client has joined us")
-
-# Called for every client disconnecting
-def client_left(client, server):
-    """ Called for every client disconnecting """
-    print "Client(%d) disconnected" % client['id']
-
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
     def __init__(self, websocket_port=8080, webserver_port=8000):
@@ -64,9 +54,11 @@ class PixelManager(HTTPServer):
                 self.dmxmap.append([read_color_config(name, row, col) for name, color in Color.__members__.items()[1:]]) 
 
         self.ws = WebsocketServer(websocket_port, "0.0.0.0")
-        self.ws.set_fn_new_client(new_client)
-        self.ws.set_fn_client_left(client_left)
+        self.ws.set_fn_new_client(self.new_client)
+        self.ws.set_fn_client_left(self.client_left)
         self.ws.set_fn_message_received(self.receive_update)
+
+        self.custom_receiver = None
 
         self.websocket_thread = threading.Thread(target=self.ws.run_forever)
         self.websocket_thread.daemon = True
@@ -77,30 +69,105 @@ class PixelManager(HTTPServer):
         server_address = ('', webserver_port)
         HTTPServer.__init__(self, server_address, PixelServer)
 
+        self.current_mode = "places"
+
+    def new_client(self, client, server):
+            """ Called for every client connecting (after handshake) """
+            
+            print "New client connected and was given id %d" % client['id']
+            
+            introduction = {
+                'type': "personal_update",
+                'place': len(server.clients)
+            }
+            
+            client['handler'].send_message(json.dumps(introduction))
+
+    def isPlayer(self, num, client):
+        if len(self.ws.clients) > num-1:
+            print client['id'], self.ws.clients[num-1]['id']
+            return client['id'] == self.ws.clients[num-1]['id']
+
+    # Called for every client disconnecting
+    def client_left(self, client, server):
+        """ Called for every client disconnecting """
+        print "Client(%d) disconnected" % client['id']
+        """ Called for every client connecting (after handshake) """
+            
+        #     print "New client connected and was given id %d" % client['id']
+            
+        #     introduction = {
+        #         'type': "personal_update",
+        #         'place': len(server.clients)
+        #     }
+            
+        #     client['handler'].send_message(json.dumps(introduction))
+        # for client in server.clients:
+        #     client['handler'].
+
     def receive_update(self, client, server, message):
         """ Receives web socket update and updates the pixel manager """
         print "Client(%d) said: %s" % (client['id'], message)
         update = json.loads(message)
-        row = int(update['row'])
-        col = int(update['col'])
-        color = Color(int(update['color']))
-        self.set_color(row, col, color)
 
-    def set_color(self, row, column, color):
-        """ Sets an individual pixel to a given color """
-        self.pixels[row][column] = color
-        print "Setting color to " + str(color)
-        if self.dmx is not None:
-            self.dmx.sendDMX(self.convert_to_dmx_array())
+        
+        if self.current_mode == "places" and update['type'] == 'pixel_touch':
+            print self.current_mode, update
+            row = int(update['row'])
+            col = int(update['col'])
+            color = Color(int(update['color']))
+            self.set_color(row, col, color)
+            self.render_update()
+        
+        if callable(self.custom_receiver):
+            self.custom_receiver(client, update)
+
+    def set_current_mode(self, name):
+        self.current_mode = name
 
         if self.ws:
             payload = {
-                'row': row,
-                'col': column,
-                'color': color.value
+                'type': "mode_change",
+                'mode': name
             }
 
             self.ws.send_message_to_all(json.dumps(payload))
+
+    def clear(self):
+        """ Sets an individual pixel to a given color """
+        self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
+
+    def set_color(self, row, column, color):
+        """ Sets an individual pixel to a given color """
+
+        # Make sure we need to update the pixel
+        if row < 0 or row >= NET_LIGHT_HEIGHT: # Out of range 
+            return
+        if column < 0 or column >= NET_LIGHT_WIDTH: # Out of range 
+            return
+        if self.pixels[row][column] == color: # Not changing
+            return
+
+        self.pixels[row][column] = color
+        
+
+    def render_update(self):
+        if self.dmx is not None:
+            self.dmx.sendDMX(self.convert_to_dmx_array())
+
+        if self.ws is not None:
+            payload = {
+                'type': "pixel_update",
+                'pixels': self.pixels
+            }
+
+            self.ws.send_message_to_all(json.dumps(payload, cls=ColorEncoder))
+
+    def set_frame(self, new_pixels):
+        """ Sets an individual pixel to a given color """
+        for row in range(NET_LIGHT_HEIGHT):
+            for col in range(NET_LIGHT_WIDTH):
+                 self.set_color(row, col, new_pixels[row][col])
 
     def get_pixels(self):
         """ Sets an individual pixel to a given color """
@@ -152,7 +219,13 @@ class PixelServer(BaseHTTPRequestHandler):
     def do_GET(self): # pylint: disable=C0103
         """ responds to a GET and produces the JSON array """
         self._set_headers()
-        self.wfile.write(json.dumps(self.server.get_pixels(), cls=ColorEncoder))
+
+        payload = {
+            "pixels": self.server.get_pixels(),
+            "mode": self.server.current_mode
+        }
+
+        self.wfile.write(json.dumps(payload, cls=ColorEncoder))
 
     def do_HEAD(self): # pylint: disable=C0103
         """ Sets the Access-Control-Allow-Origin to anyone  """
