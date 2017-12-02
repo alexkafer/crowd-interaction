@@ -4,40 +4,40 @@ import random
 NET_LIGHT_WIDTH = 12 # Number of columns
 NET_LIGHT_HEIGHT = 5 # Number of rows
 
-#row, col [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+#row[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 row0 = [
-    [0, 0, 1, 1, 0, 1, 0, 1, 0, 1], # pixel00
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1], # pixel00
     [1, 0, 1, 1, 0, 1, 1, 1, 1, 1], # pixel01
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], # pixel02
-    [0, 0, 0, 1, 0, 1, 1, 1, 0, 1]] # pixel03
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1], # pixel02
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1]] # pixel03
 
 #row, col [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 row1 =[
-    [1, 0, 0, 0, 0, 1, 1, 0, 1, 1], #pixel10
-    [0, 1, 0, 0, 1, 0, 0, 0, 0, 0], #pixel11
+    [1, 0, 0, 0, 1, 1, 1, 0, 1, 1], #pixel10
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], #pixel11
     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], #pixel12
-    [1, 0, 1, 1, 0, 0, 0, 1, 1, 1]] #pixel13
+    [1, 0, 1, 1, 1, 0, 0, 1, 1, 1]] #pixel13
 
 #row, col [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 row2 = [
-    [1, 1, 0, 0, 1, 1, 1, 0, 0, 0], #pixel20 = 
-    [0, 0, 1, 1, 0, 1, 1, 0, 1, 1], #pixel21 = 
-    [0, 1, 1, 1, 0, 1, 1, 1, 1, 1], #pixel22 = 
-    [1, 0, 0, 0, 1, 1, 1, 0, 0, 1]] #pixel23 = 
+    [1, 0, 1, 0, 1, 1, 1, 0, 1, 1], #pixel20 = 
+    [0, 0, 1, 1, 1, 1, 1, 0, 1, 1], #pixel21 = 
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1], #pixel22 = 
+    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1]] #pixel23 = 
 
 #row, col [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 row3 =[
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0], # pixel30 = 
-    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0], # pixel31 = 
-    [0, 1, 0, 0, 1, 0, 0, 0, 0, 0], # pixel32 = 
+    [1, 0, 1, 0, 0, 0, 1, 0, 1, 0], # pixel30 = 
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], # pixel31 = 
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], # pixel32 = 
     [1, 0, 0, 1, 1, 1, 1, 0, 1, 1]] # pixel33 = 
 
 #row, col [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 row4 =[
-    [0, 0, 1, 1, 0, 1, 0, 0, 0, 1], #pixel40 = 
-    [1, 0, 1, 1, 0, 1, 1, 1, 1, 1], #pixel41 = 
-    [1, 1, 1, 1, 0, 1, 1, 0, 1, 1], #pixel42 = 
-    [0, 0, 1, 1, 1, 0, 0, 0, 0, 1]] #pixel43 = 
+    [1, 0, 1, 1, 0, 1, 1, 0, 1, 0], #pixel40 = 
+    [1, 0, 1, 1, 0, 1, 1, 1, 1, 0], #pixel41 = 
+    [1, 1, 1, 1, 0, 1, 1, 0, 1, 0], #pixel42 = 
+    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1]] #pixel43 = 
 
 numbers = [row0, row1, row2, row3, row4]
 
@@ -231,7 +231,7 @@ class PongGame:
         pixels[2][0] = Color.GREEN
         pixels[2][4] = Color.GREEN
         pixels[3][0] = Color.GREEN
-        pixels[3][1] = Color.GREEN
+        pixels[3][2] = Color.GREEN
         pixels[3][4] = Color.GREEN
         pixels[4][1] = Color.GREEN
         pixels[4][3] = Color.GREEN
@@ -245,11 +245,11 @@ class PongGame:
         pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
 
         # Middle bar
-        pixels[2][5] = Color.GREEN
-        pixels[2][6] = Color.GREEN
+        pixels[2][5] = Color.GREEN if self.left_score == self.right_score else Color.RED
+        pixels[2][6] = Color.GREEN if self.left_score == self.right_score else Color.RED
 
-        leftcolor = Color.GREEN if self.left_score > self.right_score else Color.RED
-        rightcolor = Color.GREEN if self.right_score > self.left_score else Color.RED
+        leftcolor = Color.GREEN if self.left_score >= self.right_score else Color.RED
+        rightcolor = Color.GREEN if self.right_score >= self.left_score else Color.RED
 
         # Left Number
         for row in range(5):

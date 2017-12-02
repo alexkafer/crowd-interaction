@@ -76,14 +76,30 @@ def test_command():
 def green():
     pixels = [[Color.GREEN for x in range(12)] for y in range(5)]
     PIXELS.set_frame(pixels)
+    PIXELS.render_update()
 
 def red():
     pixels = [[Color.RED for x in range(12)] for y in range(5)]
     PIXELS.set_frame(pixels)
+    PIXELS.render_update()
+
+def allOn():
+    pixels = [[Color.BOTH for x in range(12)] for y in range(5)]
+    PIXELS.set_frame(pixels)
+    PIXELS.render_update()
 
 def clear():
     pixels = [[Color.OFF for x in range(12)] for y in range(5)]
     PIXELS.set_frame(pixels)
+    PIXELS.render_update()
+
+def numbers():
+    game = PongGame(PIXELS)
+    for x in range(10):
+        game.left_score = x
+        game.show_score()
+        PIXELS.render_update()
+        time.sleep(3)
 
 def clients():
     print PIXELS.ws.clients
@@ -100,20 +116,21 @@ def pong_command():
 
     try:
         while not game.finished:
-            time.sleep(0.5)
+            time.sleep(0.25)
             game.update()
             PIXELS.render_update()
     except KeyboardInterrupt:
         print('interrupted!')
 
-    
+
 
 COMMANDS = {
     "stop" : stop_command,
-    "test" : test_command,
+    "test" : numbers,
     "pong" : pong_command,
     "green" : green,
     "red" : red,
+    "all": allOn,
     "clear" : clear,
     "clients": clients
 }

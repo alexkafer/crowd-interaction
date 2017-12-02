@@ -15,6 +15,7 @@ class Color(Enum):
     OFF = 0
     RED = 1
     GREEN = 2
+    BOTH = 3
 
 class ColorEncoder(json.JSONEncoder):
     """ Allow color to be encoded with the JSONEncoder """
@@ -175,9 +176,30 @@ class PixelManager(HTTPServer):
 
     def convert_to_dmx_array(self):
         """ Converts the matrix to a single 1D array. """
+        output = [255] * 512
+        flattened = (self.pixels[4] + self.pixels[3] + self.pixels[2] + self.pixels[1] + self.pixels[0])
+        index = 0
+        for pixel in flattened:
+            print index, pixel, self.dmxmap[index]
+            if pixel == Color.RED:
+                output[self.dmxmap[index][0]-1] = 255
+                output[self.dmxmap[index][1]-1] = 0
+            elif pixel == Color.GREEN:
+                output[self.dmxmap[index][0]-1] = 0
+                output[self.dmxmap[index][1]-1] = 255
+            elif pixel == Color.BOTH:
+                output[self.dmxmap[index][1]-1] = 255
+                output[self.dmxmap[index][0]-1] = 255
+            else:
+                output[self.dmxmap[index][0]-1] = 0
+                output[self.dmxmap[index][1]-1] = 0
+ 
+            index += 1
+             
+        return output
         # Initializes all lights to full brightness, the first None being an offset
         # The offset is removed at end since DMX is 1 based (not 0)
-        output = [None] + [255] * 512
+        output = [255] * 512
 
         for row in range(NET_LIGHT_HEIGHT):
             for col in range(NET_LIGHT_WIDTH):
@@ -187,12 +209,12 @@ class PixelManager(HTTPServer):
                 pixel = self.pixels[row][col]
 
                 if redchannel != None:
-                    output[redchannel] = 255 if pixel == Color.RED else 0
+                    output[redchannel-1] = 255 if pixel is Color.RED or pixel is Color.BOTH else 0
 
                 if greenchannel != None:
-                    output[greenchannel] = 255 if pixel == Color.GREEN else 0
+                    output[greenchannel-1] = 255 if pixel is Color.GREEN or pixel is Color.BOTH else 0
 
-        return output[1:] # Returns the array, removing the offset
+        return output # Returns the array, removing the offset
 
     def link_dmx(self, dmx):
         """ Links the DMX instance to the Pixel Manager  """
