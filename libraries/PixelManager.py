@@ -92,7 +92,7 @@ class PixelManager(HTTPServer):
     # Called for every client disconnecting
     def client_left(self, client, server):
         """ Called for every client disconnecting """
-        print "Client(%d) disconnected" % client['id']
+        print "Client disconnected", client
         """ Called for every client connecting (after handshake) """
             
         #     print "New client connected and was given id %d" % client['id']

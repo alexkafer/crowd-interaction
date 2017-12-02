@@ -8,7 +8,12 @@ The main file is `crowd_interaction.py`. Be nice to that file, it was born with 
 
 
 # Getting Started
-`python crowd_interaction.py`
+`python -m crowd_interaction`
+
+You may need to run the following commands if you get import errors:
+
+`sudo pip install --upgrade pip enum34`
+`sudo pip install pyserial`
 
 Yeah thats about it. The software should be smart enough to debug itself upon any errors. 
 
