@@ -27,7 +27,7 @@ class ColorEncoder(json.JSONEncoder):
 
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
-    def __init__(self, websocket_port=8080, webserver_port=8000):
+    def __init__(self, websocket_port=8000, webserver_port=80):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
         self.dmx = None
