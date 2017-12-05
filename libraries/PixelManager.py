@@ -27,7 +27,7 @@ class ColorEncoder(json.JSONEncoder):
 
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
-    def __init__(self, websocket_port=8080, webserver_port=80):
+    def __init__(self, websocket_port=8080, webserver_port=8000):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
         self.dmx = None
@@ -199,22 +199,6 @@ class PixelManager(HTTPServer):
         return output
         # Initializes all lights to full brightness, the first None being an offset
         # The offset is removed at end since DMX is 1 based (not 0)
-        output = [255] * 512
-
-        for row in range(NET_LIGHT_HEIGHT):
-            for col in range(NET_LIGHT_WIDTH):
-                redchannel = self.dmxmap[(row*NET_LIGHT_HEIGHT + col)][0]
-                greenchannel = self.dmxmap[(row*NET_LIGHT_HEIGHT + col)][1]
-
-                pixel = self.pixels[row][col]
-
-                if redchannel != None:
-                    output[redchannel-1] = 255 if pixel is Color.RED or pixel is Color.BOTH else 0
-
-                if greenchannel != None:
-                    output[greenchannel-1] = 255 if pixel is Color.GREEN or pixel is Color.BOTH else 0
-
-        return output # Returns the array, removing the offset
 
     def link_dmx(self, dmx):
         """ Links the DMX instance to the Pixel Manager  """
