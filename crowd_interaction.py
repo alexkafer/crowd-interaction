@@ -126,7 +126,7 @@ def pong_command():
 
 COMMANDS = {
     "stop" : stop_command,
-    "test" : numbers,
+    "test" : test_command,
     "pong" : pong_command,
     "green" : green,
     "red" : red,
