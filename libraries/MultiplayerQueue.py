@@ -25,7 +25,7 @@ class MultiplayerQueue():
         """ Returns the ID of the new player"""
         try:
             player = self.line.popleft() 
-             print "Starting ", player['id']
+            print "Starting ", player['id']
             self.in_game[number] = player
             return player
         except IndexError:
