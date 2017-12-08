@@ -5,6 +5,7 @@ import json
 from ConfigParser import RawConfigParser, NoSectionError, NoOptionError
 import threading
 
+from libraries.MultiplayerQueue import MultiplayerQueue
 from websocket_server import WebsocketServer
 
 NET_LIGHT_WIDTH = 12 # Number of columns
@@ -71,68 +72,88 @@ class PixelManager(HTTPServer):
         HTTPServer.__init__(self, server_address, PixelServer)
 
         self.current_mode = "places"
-
+        self.multiplayer = MultiplayerQueue()    
+        
     def new_client(self, client, server):
             """ Called for every client connecting (after handshake) """
-            
             print "New client connected and was given id %d" % client['id']
             
-            introduction = {
-                'type': "personal_update",
-                'place': len(server.clients)
+            payload = {
+                'type': "pixel_update",
+                'pixels': self.pixels
             }
             
-            client['handler'].send_message(json.dumps(introduction))
-
-    def isPlayer(self, num, client):
-        if len(self.ws.clients) > num-1:
-            print client['id'], self.ws.clients[num-1]['id']
-            return client['id'] == self.ws.clients[num-1]['id']
+            # Pre-populate pixel data
+            client['handler'].send_message(json.dumps(payload, cls=ColorEncoder))
 
     # Called for every client disconnecting
     def client_left(self, client, server):
         """ Called for every client disconnecting """
         print "Client disconnected", client
-        """ Called for every client connecting (after handshake) """
-            
-        #     print "New client connected and was given id %d" % client['id']
-            
-        #     introduction = {
-        #         'type': "personal_update",
-        #         'place': len(server.clients)
-        #     }
-            
-        #     client['handler'].send_message(json.dumps(introduction))
-        # for client in server.clients:
-        #     client['handler'].
+        self.multiplayer.remove_player(client['id'])
 
     def receive_update(self, client, server, message):
         """ Receives web socket update and updates the pixel manager """
         print "Client(%d) said: %s" % (client['id'], message)
-        update = json.loads(message)
+        updateMessage = json.loads(message)
+        try:
+            updateType = updateMessage['type']
+        except KeyError:
+            print "Update without type!"
+            updateType = None
 
+        updates = {
+            "pixel_touch": self.pixel_touch,
+            "button_press": self.custom_receiver,
+            "play_intent": self.add_player_to_line
+        }
+
+        try:
+            fun = updates[updateType]
+            if callable(fun):
+                fun(client, updateMessage)
+        except KeyError:
+            print "Received update called", updateType, "and I'm not sure what that is."
+
+    def send_update(self, clientID, update_type, payload = {}):
+        if self.ws:
+            if not payload.has_key("type"):
+                payload['type'] = update_type
+            
+            if clientID == -1:
+                self.ws.send_message_to_all(json.dumps(payload, cls=ColorEncoder))
+            else:
+                for client in self.ws.clients:
+                    if client['id'] == clientID:
+                        client['handler'].send_message(json.dumps(payload, cls=ColorEncoder))
+                        break
         
-        if self.current_mode == "places" and update['type'] == 'pixel_touch':
+    def pixel_touch(self, client, update):
+        if self.current_mode == "places":
             print self.current_mode, update
             row = int(update['row'])
             col = int(update['col'])
             color = Color(int(update['color']))
             self.set_color(row, col, color)
             self.render_update()
-        
-        if callable(self.custom_receiver):
-            self.custom_receiver(client, update)
+
+    # Game related things
+    def set_game_size(self, size):
+        self.multiplayer.set_game_size(size)
+
+    def add_player_to_line(self, client, update):
+       self.multiplayer.add_player(client)
+
+    def get_players(self, number):
+       for playerNum in number:
+           self.multiplayer.start_player(playerNum)
+
+    def end_players(self):
+        self.multiplayer.end_players()
 
     def set_current_mode(self, name):
         self.current_mode = name
-
-        if self.ws:
-            payload = {
-                'type': "mode_change",
-                'mode': name
-            }
-
-            self.ws.send_message_to_all(json.dumps(payload))
+        self.send_update(-1, "mode_change", {'mode': name})
 
     def clear(self):
         """ Sets an individual pixel to a given color """
@@ -156,13 +177,7 @@ class PixelManager(HTTPServer):
         if self.dmx is not None:
             self.dmx.sendDMX(self.convert_to_dmx_array())
 
-        if self.ws is not None:
-            payload = {
-                'type': "pixel_update",
-                'pixels': self.pixels
-            }
-
-            self.ws.send_message_to_all(json.dumps(payload, cls=ColorEncoder))
+        self.send_update(-1, "pixel_update", {'pixels': self.pixels})
 
     def set_frame(self, new_pixels):
         """ Sets an individual pixel to a given color """
@@ -226,12 +241,23 @@ class PixelServer(BaseHTTPRequestHandler):
         """ responds to a GET and produces the JSON array """
         self._set_headers()
 
-        payload = {
-            "pixels": self.server.get_pixels(),
-            "mode": self.server.current_mode
-        }
+        print"Path!", self.path
 
-        self.wfile.write(json.dumps(payload, cls=ColorEncoder))
+        payload = None
+
+        if self.path == "/players":
+            payload = {
+                "players": list(map(lambda x: x['id'], list(self.server.multiplayer.in_game))),
+                "in_game": list(map(lambda x: x['id'], self.server.multiplayer.in_game))
+            }
+
+        if self.path == "/" or self.path == "":
+            payload = {
+                "pixels": self.server.get_pixels()
+            }
+
+        if payload is not None:
+            self.wfile.write(json.dumps(payload, cls=ColorEncoder))
 
     def do_HEAD(self): # pylint: disable=C0103
         """ Sets the Access-Control-Allow-Origin to anyone  """

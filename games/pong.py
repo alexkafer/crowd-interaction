@@ -60,6 +60,7 @@ class PongGame:
 
         self.finished = False
 
+        self.pixel_manager.set_game_size(2)
     def controls_update(self, client, update):
         
         if update['type'] == 'button_press':

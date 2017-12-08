@@ -110,7 +110,6 @@ def stop_command():
 
 def pong_command():
     game = PongGame(PIXELS)
-    
 
     game.show_score()
 
@@ -119,6 +118,7 @@ def pong_command():
             time.sleep(0.25)
             game.update()
             PIXELS.render_update()
+        PIXELS.end_players()
     except KeyboardInterrupt:
         print('interrupted!')
 
@@ -134,7 +134,6 @@ COMMANDS = {
     "clear" : clear,
     "clients": clients
 }
-
 
 command = None
 while command != "stop":
