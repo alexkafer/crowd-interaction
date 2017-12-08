@@ -275,7 +275,7 @@ class PixelServer(BaseHTTPRequestHandler):
         try:
             split = self.path.split("/")
             if split[1] == "kick":
-                idToKick = split[3]
+                idToKick = split[2]
                 self.server.multiplayer.remove_player(idToKick)
         except:
             print "Invalid POST: ", self.path
