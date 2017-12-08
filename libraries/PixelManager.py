@@ -229,6 +229,12 @@ class PixelManager(HTTPServer):
         print 'Starting httpd...'
         self.webserver_thread.start()
 
+def extractID(client):
+    try:
+        return client['id']
+    except:
+        None
+
 class PixelServer(BaseHTTPRequestHandler):
     """ A HTTP server that responds back with a JSON array of the current pixels """
     def _set_headers(self):
@@ -247,8 +253,8 @@ class PixelServer(BaseHTTPRequestHandler):
 
         if self.path == "/players":
             payload = {
-                "players": list(map(lambda x: x['id'], list(self.server.multiplayer.line))),
-                "in_game": list(map(lambda x: x['id'], self.server.multiplayer.in_game))
+                "players": map(extractID, list(self.server.multiplayer.line)),
+                "in_game": map(extractID, self.server.multiplayer.in_game)
             }
 
         if self.path == "/" or self.path == "":
