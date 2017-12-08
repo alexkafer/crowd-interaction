@@ -6,8 +6,8 @@ class MultiplayerQueue():
         self.in_game = []
         
     def add_player(self, player):
-        print "Player has been appended!"
         self.line.append(player)
+        print "Added player: ", self.line
         return len(self.line)
 
     def map_line_players(self, fn):

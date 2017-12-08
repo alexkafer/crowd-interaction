@@ -247,7 +247,7 @@ class PixelServer(BaseHTTPRequestHandler):
 
         if self.path == "/players":
             payload = {
-                "players": list(map(lambda x: x['id'], list(self.server.multiplayer.in_game))),
+                "players": list(map(lambda x: x['id'], list(self.server.multiplayer.line))),
                 "in_game": list(map(lambda x: x['id'], self.server.multiplayer.in_game))
             }
 
