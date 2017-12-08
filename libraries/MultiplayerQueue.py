@@ -25,40 +25,49 @@ class MultiplayerQueue():
         self.in_game = [None]*size
         print "set size", size
 
-    def start_player(self, number):
+    def start_player(self, number, notifyCb, game):
         """ Returns the ID of the new player"""
         try:
             player = self.line.popleft() 
             print "Starting ", player['id']
+            notifyCb(player['id'], "mode_change", {"mode": "pong"})
+
             self.in_game[number] = player
             return player
         except IndexError:
             return None
 
-    def fill_players(self):
+    def fill_players(self, notifyCb, game):
         for idx, val in enumerate(self.in_game):
             if val is None:
                 print "Filling a player ", idx
-                self.start_player(idx)
+                self.start_player(idx, notifyCb, game)
 
-    def remove_player(self, clientID):
+    def remove_player(self, clientID, notifyCb=None):
         print "Kicking player", clientID
+        if notifyCb is not None:
+            notifyCb(clientID, "mode_change", {"mode": "line"})
         try:
             client = int(clientID)
         except ValueError:
             return False
 
         for player in self.line:
-            if player['id'] == client:
-                print "Removing player in line", idx
-                self.line.remove(player)
-                return True
-
+            try:
+                if player['id'] == client:
+                    print "Removing player in line"
+                    self.line.remove(player)
+                    return True
+            except:
+                return False
         for idx, val in enumerate(self.in_game):
-            if val['id'] == client:
-                print "Kicking current player ", idx
-                self.in_game[idx] = None
-                return True
+            try:
+                if val['id'] == client:
+                    print "Kicking current player ", idx
+                    self.in_game[idx] = None
+                    return True
+            except:
+                return False
         return False
 
     def clear_players(self):

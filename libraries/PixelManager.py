@@ -86,6 +86,9 @@ class PixelManager(HTTPServer):
             # Pre-populate pixel data
             client['handler'].send_message(json.dumps(payload, cls=ColorEncoder))
 
+    def player_start_game(self):
+         self.send_update(-1, "mode_change", {'mode': name})
+
     # Called for every client disconnecting
     def client_left(self, client, server):
         """ Called for every client disconnecting """
@@ -143,20 +146,20 @@ class PixelManager(HTTPServer):
         self.multiplayer.set_game_size(size)
 
     def start_game_filling(self):
-        self.multiplayer.fill_players()
+        self.multiplayer.fill_players(self.send_update, self.current_mode)
 
     def add_player_to_line(self, client, update):
        self.multiplayer.add_player(client)
-
-    def get_players(self, number):
-       for playerNum in number:
-           self.multiplayer.start_player(playerNum)
 
     def clear_players(self):
         self.multiplayer.clear_players()
 
     def set_current_mode(self, name):
         self.current_mode = name
+        if name != "places":
+            name = "line"
+            self.multiplayer.clear_players()
+        
         self.send_update(-1, "mode_change", {'mode': name})
 
     def clear(self):
@@ -165,7 +168,6 @@ class PixelManager(HTTPServer):
 
     def set_color(self, row, column, color):
         """ Sets an individual pixel to a given color """
-
         # Make sure we need to update the pixel
         if row < 0 or row >= NET_LIGHT_HEIGHT: # Out of range 
             return
@@ -261,10 +263,14 @@ class PixelServer(BaseHTTPRequestHandler):
                 "in_game": map(extractID, self.server.multiplayer.in_game)
             }
 
+    
         if self.path == "/" or self.path == "":
+            mode = self.server.current_mode
+            if mode != "places":
+                mode = "line"
             payload = {
                 "pixels": self.server.get_pixels(),
-                "mode": self.server.current_mode
+                "mode": mode
             }
 
         if payload is None:
@@ -281,7 +287,7 @@ class PixelServer(BaseHTTPRequestHandler):
             split = self.path.split("/")
             if split[1] == "kick":
                 idToKick = split[2]
-                self.server.multiplayer.remove_player(idToKick)
+                self.server.multiplayer.remove_player(idToKick, self.server.send_update)
         except Exception as e:
             print "Invalid POST: ", self.path, e
             payload = {

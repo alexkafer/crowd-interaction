@@ -121,6 +121,7 @@ def pong_command():
 
     try:
         while not game.finished:
+            PIXELS.start_game_filling()
             time.sleep(0.25)
             game.update()
             PIXELS.render_update()
