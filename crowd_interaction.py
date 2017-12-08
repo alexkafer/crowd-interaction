@@ -108,9 +108,14 @@ def stop_command():
     if DMX is not None:
         DMX.disconnect
 
+def multiplayer_test():
+    PIXELS.set_game_size(2)
+    while True:
+        time.sleep(5)
+        PIXELS.end_players()
+
 def pong_command():
     game = PongGame(PIXELS)
-
     game.show_score()
 
     try:
@@ -132,7 +137,7 @@ COMMANDS = {
     "red" : red,
     "all": allOn,
     "clear" : clear,
-    "clients": clients
+    "multiplayer": multiplayer_test
 }
 
 command = None

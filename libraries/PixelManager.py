@@ -260,6 +260,12 @@ class PixelServer(BaseHTTPRequestHandler):
         if payload is not None:
             self.wfile.write(json.dumps(payload, cls=ColorEncoder))
 
+    def do_POST(self): # pylint: disable=C0103
+        """ responds to a GET and produces the JSON array """
+        self._set_headers()
+
+        print"Path!", self.path
+
     def do_HEAD(self): # pylint: disable=C0103
         """ Sets the Access-Control-Allow-Origin to anyone  """
         self._set_headers()
