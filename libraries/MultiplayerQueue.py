@@ -39,14 +39,20 @@ class MultiplayerQueue():
                 self.start_player(idx)
 
     def remove_player(self, clientID):
-        print "Kicking player ", clientID
+        print "Kicking player", clientID
+        try:
+            client = int(clientID)
+        except ValueError:
+            return False
+
         for player in self.in_game:
-            if player['id'] == clientID:
+            
+            if player['id'] == client:
                 self.line.remove(player)
                 return True
 
         for idx, val in enumerate(self.in_game):
-            if player['id'] == clientID:
+            if player['id'] == client:
                 print "Kicking current player ", idx
                 self.in_game[idx] = None
                 return True

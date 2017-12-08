@@ -271,6 +271,9 @@ class PixelServer(BaseHTTPRequestHandler):
 
     def do_POST(self): # pylint: disable=C0103
         """ responds to a GET and produces the JSON array """
+        payload = {
+             message: "Success"
+        }
         self._set_headers()
         try:
             split = self.path.split("/")
@@ -279,6 +282,11 @@ class PixelServer(BaseHTTPRequestHandler):
                 self.server.multiplayer.remove_player(idToKick)
         except:
             print "Invalid POST: ", self.path
+            payload = {
+                message: "Failed"
+            }
+
+        self.wfile.write(json.dumps(payload)))
 
     def do_HEAD(self): # pylint: disable=C0103
         """ Sets the Access-Control-Allow-Origin to anyone  """
