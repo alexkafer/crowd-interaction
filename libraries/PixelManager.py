@@ -253,7 +253,8 @@ class PixelServer(BaseHTTPRequestHandler):
 
         if self.path == "/" or self.path == "":
             payload = {
-                "pixels": self.server.get_pixels()
+                "pixels": self.server.get_pixels(),
+                "mode": self.server.current_mode
             }
 
         if payload is not None:
