@@ -148,8 +148,8 @@ class PixelManager(HTTPServer):
        for playerNum in number:
            self.multiplayer.start_player(playerNum)
 
-    def end_players(self):
-        self.multiplayer.end_players()
+    def clear_players(self):
+        self.multiplayer.clear_players()
 
     def set_current_mode(self, name):
         self.current_mode = name

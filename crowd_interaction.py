@@ -112,7 +112,7 @@ def multiplayer_test():
     PIXELS.set_game_size(2)
     while True:
         time.sleep(5)
-        PIXELS.end_players()
+        PIXELS.clear_players()
 
 def pong_command():
     game = PongGame(PIXELS)
@@ -123,7 +123,7 @@ def pong_command():
             time.sleep(0.25)
             game.update()
             PIXELS.render_update()
-        PIXELS.end_players()
+        PIXELS.clear_players()
     except KeyboardInterrupt:
         print('interrupted!')
 
