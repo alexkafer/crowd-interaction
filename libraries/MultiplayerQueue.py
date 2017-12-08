@@ -6,9 +6,12 @@ class MultiplayerQueue():
         self.in_game = []
         
     def add_player(self, player):
-        self.line.append(player)
-        print "Added player: ", self.line
-        return len(self.line)
+        if player not in self.line:
+            self.line.append(player)
+            print "Added player: ", player['id']
+            return len(self.line)
+        else:
+            print "Player", player['id'],  "already on list"
 
     def map_line_players(self, fn):
         for player in self.line:
@@ -45,14 +48,14 @@ class MultiplayerQueue():
         except ValueError:
             return False
 
-        for player in self.in_game:
-            
+        for player in self.line:
             if player['id'] == client:
+                print "Removing player in line", idx
                 self.line.remove(player)
                 return True
 
         for idx, val in enumerate(self.in_game):
-            if player['id'] == client:
+            if val['id'] == client:
                 print "Kicking current player ", idx
                 self.in_game[idx] = None
                 return True

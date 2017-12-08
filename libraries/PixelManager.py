@@ -28,7 +28,7 @@ class ColorEncoder(json.JSONEncoder):
 
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
-    def __init__(self, websocket_port=8000, webserver_port=80):
+    def __init__(self, websocket_port=8000, webserver_port=8080):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
         self.dmx = None
@@ -96,6 +96,7 @@ class PixelManager(HTTPServer):
         """ Receives web socket update and updates the pixel manager """
         print "Client(%d) said: %s" % (client['id'], message)
         updateMessage = json.loads(message)
+
         try:
             updateType = updateMessage['type']
         except KeyError:
@@ -266,8 +267,9 @@ class PixelServer(BaseHTTPRequestHandler):
                 "mode": self.server.current_mode
             }
 
-        if payload is not None:
-            self.wfile.write(json.dumps(payload, cls=ColorEncoder))
+        if payload is None:
+            payload = {}
+        self.wfile.write(json.dumps(payload, cls=ColorEncoder))
 
     def do_POST(self): # pylint: disable=C0103
         """ responds to a GET and produces the JSON array """
@@ -280,8 +282,8 @@ class PixelServer(BaseHTTPRequestHandler):
             if split[1] == "kick":
                 idToKick = split[2]
                 self.server.multiplayer.remove_player(idToKick)
-        except:
-            print "Invalid POST: ", self.path
+        except Exception as e:
+            print "Invalid POST: ", self.path, e
             payload = {
                 "message": "Failed"
             }

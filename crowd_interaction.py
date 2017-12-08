@@ -113,7 +113,7 @@ def multiplayer_test():
     while True:
         PIXELS.start_game_filling()
         time.sleep(5)
-        PIXELS.clear_players()
+        # PIXELS.clear_players()
 
 def pong_command():
     game = PongGame(PIXELS)
