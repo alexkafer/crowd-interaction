@@ -286,7 +286,7 @@ class PixelServer(BaseHTTPRequestHandler):
                 message: "Failed"
             }
 
-        self.wfile.write(json.dumps(payload)))
+        self.wfile.write(json.dumps(payload))
 
     def do_HEAD(self): # pylint: disable=C0103
         """ Sets the Access-Control-Allow-Origin to anyone  """
