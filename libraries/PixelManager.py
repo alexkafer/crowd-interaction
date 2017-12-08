@@ -141,6 +141,9 @@ class PixelManager(HTTPServer):
     def set_game_size(self, size):
         self.multiplayer.set_game_size(size)
 
+    def start_game_filling(self):
+        self.multiplayer.fill_players()
+
     def add_player_to_line(self, client, update):
        self.multiplayer.add_player(client)
 

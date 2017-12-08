@@ -20,6 +20,7 @@ class MultiplayerQueue():
 
     def set_game_size(self, size):
         self.in_game = [None]*size
+        print "set size", size
 
     def start_player(self, number):
         """ Returns the ID of the new player"""

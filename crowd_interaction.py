@@ -111,6 +111,7 @@ def stop_command():
 def multiplayer_test():
     PIXELS.set_game_size(2)
     while True:
+        PIXELS.start_game_filling()
         time.sleep(5)
         PIXELS.clear_players()
 
