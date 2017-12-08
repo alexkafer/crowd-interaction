@@ -25,6 +25,7 @@ class MultiplayerQueue():
         """ Returns the ID of the new player"""
         try:
             player = self.line.popleft() 
+             print "Starting ", player['id']
             self.in_game[number] = player
             return player
         except IndexError:
@@ -33,6 +34,7 @@ class MultiplayerQueue():
     def fill_players(self):
         for idx, val in enumerate(self.in_game):
             if val is None:
+                print "Filling a player ", idx
                 self.start_player(idx)
 
     def remove_player(self, clientID):
