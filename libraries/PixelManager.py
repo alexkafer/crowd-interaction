@@ -272,7 +272,7 @@ class PixelServer(BaseHTTPRequestHandler):
     def do_POST(self): # pylint: disable=C0103
         """ responds to a GET and produces the JSON array """
         payload = {
-             message: "Success"
+             "message": "Success"
         }
         self._set_headers()
         try:
@@ -283,7 +283,7 @@ class PixelServer(BaseHTTPRequestHandler):
         except:
             print "Invalid POST: ", self.path
             payload = {
-                message: "Failed"
+                "message": "Failed"
             }
 
         self.wfile.write(json.dumps(payload))
