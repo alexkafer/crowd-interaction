@@ -28,7 +28,7 @@ class ColorEncoder(json.JSONEncoder):
 
 class PixelManager(HTTPServer):
     """ Pixel Manager with Data Storage, Websocket, and HTTP Get Interface """
-    def __init__(self, websocket_port=8000, webserver_port=80):
+    def __init__(self, websocket_port=8000, webserver_port=8080):
         """ Initializes the pixels to the correct size and pre-sets everything to OFF """
         self.pixels = [[Color.OFF for x in range(NET_LIGHT_WIDTH)] for y in range(NET_LIGHT_HEIGHT)]
         self.dmx = None
@@ -86,14 +86,18 @@ class PixelManager(HTTPServer):
             # Pre-populate pixel data
             client['handler'].send_message(json.dumps(payload, cls=ColorEncoder))
 
-    def player_start_game(self):
-         self.send_update(-1, "mode_change", {'mode': name})
-
     # Called for every client disconnecting
     def client_left(self, client, server):
         """ Called for every client disconnecting """
         print "Client disconnected", client
         self.multiplayer.remove_player(client['id'])
+
+    def update_positions(self):
+        for index, player in enumerate(list(self.multiplayer.line)):
+            try:
+                player['handler'].send_message(json.dumps({"position": index+1}, cls=ColorEncoder))
+            except:
+                print ("Player doesn't exist issue")
 
     def receive_update(self, client, server, message):
         """ Receives web socket update and updates the pixel manager """
@@ -115,7 +119,9 @@ class PixelManager(HTTPServer):
         try:
             fun = updates[updateType]
             if callable(fun):
-                fun(client, updateMessage)
+                result = fun(client, updateMessage)
+                if updateType == 'play_intent':
+                    self.send_update(client['id'], "player_position", {"position": result})
         except KeyError:
             print "Received update called", updateType, "and I'm not sure what that is."
 
@@ -149,7 +155,7 @@ class PixelManager(HTTPServer):
         self.multiplayer.fill_players(self.send_update, self.current_mode)
 
     def add_player_to_line(self, client, update):
-       self.multiplayer.add_player(client)
+       return self.multiplayer.add_player(client)
 
     def clear_players(self):
         self.multiplayer.clear_players()
