@@ -61,30 +61,29 @@ class PongGame:
         self.finished = False
 
         self.pixel_manager.set_game_size(2)
+    
     def controls_update(self, client, update):
-        
-        if update['type'] == 'button_press':
-            if self.pixel_manager.isPlayer(1, client):
-                print 'found player one!' 
-                if update['button'] == 0:
-                    self.left_pos += 1
-                    if self.left_pos > 3:
-                        self.left_pos = 3
-                if update['button'] == 1:
-                    self.left_pos -= 1
-                    if self.left_pos < 0:
-                        self.left_pos = 0
+        if self.pixel_manager.multiplayer.in_game[0] == client:
+            print 'found player one!' 
+            if update['button'] == 0:
+                self.left_pos += 1
+                if self.left_pos > 3:
+                    self.left_pos = 3
+            if update['button'] == 1:
+                self.left_pos -= 1
+                if self.left_pos < 0:
+                    self.left_pos = 0
 
-            if self.pixel_manager.isPlayer(2, client):
-                print 'found player two!' 
-                if update['button'] == 0:
-                    self.right_pos += 1
-                    if self.right_pos > 3:
-                        self.right_pos = 3
-                if update['button'] == 1:
-                    self.right_pos -= 1
-                    if self.right_pos < 0:
-                        self.right_pos = 0
+        if self.pixel_manager.multiplayer.in_game[1] == client:
+            print 'found player two!' 
+            if update['button'] == 0:
+                self.right_pos += 1
+                if self.right_pos > 3:
+                    self.right_pos = 3
+            if update['button'] == 1:
+                self.right_pos -= 1
+                if self.right_pos < 0:
+                    self.right_pos = 0
 
     def update(self):
         if self.title_card_remaining > 0:
