@@ -72,7 +72,7 @@ class PixelManager(HTTPServer):
         HTTPServer.__init__(self, server_address, PixelServer)
 
         self.current_mode = "places"
-        self.multiplayer = MultiplayerQueue()    
+        self.multiplayer = MultiplayerQueue(self.update_positions)    
         
     def new_client(self, client, server):
             """ Called for every client connecting (after handshake) """
@@ -119,9 +119,7 @@ class PixelManager(HTTPServer):
         try:
             fun = updates[updateType]
             if callable(fun):
-                result = fun(client, updateMessage)
-                if updateType == 'play_intent':
-                    self.send_update(client['id'], "player_position", {"position": result})
+                fun(client, updateMessage)
         except KeyError:
             print "Received update called", updateType, "and I'm not sure what that is."
 
@@ -155,7 +153,7 @@ class PixelManager(HTTPServer):
         self.multiplayer.fill_players(self.send_update, self.current_mode)
 
     def add_player_to_line(self, client, update):
-       return self.multiplayer.add_player(client)
+        self.multiplayer.add_player(client)
 
     def clear_players(self):
         self.multiplayer.clear_players()

@@ -1,17 +1,18 @@
 from collections import deque
 
 class MultiplayerQueue():
-    def __init__(self):
+    def __init__(self, update_callback):
         self.line = deque()
         self.in_game = []
+        self.update_callback = update_callback
         
     def add_player(self, player):
         if player not in self.line:
             self.line.append(player)
             print "Added player: ", player['id']
-            return len(self.line)
         else:
             print "Player", player['id'],  "already on list"
+
 
     def map_line_players(self, fn):
         for player in self.line:
@@ -45,6 +46,7 @@ class MultiplayerQueue():
 
     def remove_player(self, clientID, notifyCb=None):
         print "Kicking player", clientID
+        self.update_callback()
         if notifyCb is not None:
             notifyCb(clientID, "mode_change", {"mode": "line"})
         try:
